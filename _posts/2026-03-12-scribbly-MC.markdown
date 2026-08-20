@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Text 2 ScribbleJson"
+title:  "Text 2 Scribble"
 date:   2026-03-12 23:06:51 +0200
 categories: minecraft
 ---

@@ -1,0 +1,19 @@
+---
+---
+
+.post-list {
+  margin-left: 0;
+  list-style: none;
+  > li {
+    margin-bottom: 8px ;
+  }
+}
+
+.post-meta {
+    font-size: 12px;
+}
+
+.post-link {
+    display: inline;
+    font-size: 32px;
+}

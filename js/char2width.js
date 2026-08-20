@@ -1,9 +1,11 @@
 // Author: Aidan Dalgarno-Platt
 // adapted to javascript by Marc-3d
 
-LINE_WIDTH = 93
+LINE_WIDTH = 114
 BOOK_LINES = 14
 PAGE_WIDTH = LINE_WIDTH * BOOK_LINES
+
+CONTROL_CODES = [ "\0", "\a", "\b", "\t", "\n", "\v", "\f", "\r", "§" ]
 
 PIXEL_WIDTHS = {}
 // Control codes/Formatting characters
