@@ -18,7 +18,7 @@ categories: finance
   .post-content,
   .post,
   main {
-    max-width: 1400px !important; /* Adjust up to 1600px or 98% if desired */
+    max-width: 1400px !important;
     width: 95% !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -99,6 +99,12 @@ categories: finance
     font-size: 14px;
   }
 
+  /* Invert date picker calendar icon from black to white */
+  .control-panel input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+
   .control-panel button {
     padding: 8px 16px;
     border-radius: 6px;
@@ -132,7 +138,7 @@ categories: finance
   }
 
   /* -------------------------------------------------------------
-     3. UNIFORM WHITE TABLE ROWS (Overrides Zebra Striping)
+     3. UNIFORM WHITE TABLE ROWS
      ------------------------------------------------------------- */
   .trades-table {
     width: 100%;
@@ -159,7 +165,6 @@ categories: finance
     color: #3b82f6 !important;
   }
 
-  /* Force ALL rows (even and odd) to have a white background */
   .trades-table tr,
   .trades-table tr:nth-child(even),
   .trades-table tr:nth-child(odd) {
@@ -173,7 +178,6 @@ categories: finance
     color: #1e293b !important;
   }
 
-  /* Subtle hover highlight on rows */
   .trades-table tr:hover,
   .trades-table tr:hover td {
     background-color: #f1f5f9 !important;
@@ -225,8 +229,10 @@ categories: finance
       <table class="trades-table" id="trades-table">
         <thead>
           <tr>
-            <th onclick="sortTable('transactionDate')">Date <span class="sort-icon" id="sort-transactionDate"></span></th>
+            <th onclick="sortTable('filingDate')">Filing Date <span class="sort-icon" id="sort-filingDate"></span></th>
+            <th onclick="sortTable('transactionDate')">Tx Date <span class="sort-icon" id="sort-transactionDate"></span></th>
             <th onclick="sortTable('issuerTicker')">Ticker <span class="sort-icon" id="sort-issuerTicker"></span></th>
+            <th onclick="sortTable('issuerName')">Company <span class="sort-icon" id="sort-issuerName"></span></th>
             <th onclick="sortTable('insiderName')">Insider <span class="sort-icon" id="sort-insiderName"></span></th>
             <th onclick="sortTable('insiderRole')">Role <span class="sort-icon" id="sort-insiderRole"></span></th>
             <th onclick="sortTable('price')">Price <span class="sort-icon" id="sort-price"></span></th>
@@ -236,7 +242,7 @@ categories: finance
           </tr>
         </thead>
         <tbody id="trades-table-body">
-          <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Loading trades...</td></tr>
+          <tr><td colspan="10" style="text-align: center; color: #94a3b8;">Loading trades...</td></tr>
         </tbody>
       </table>
     </div>
@@ -286,7 +292,6 @@ categories: finance
     document.getElementById(viewId).classList.add('active');
     element.classList.add('active');
 
-    // Deferred initialization for TradingView chart container sizing
     if (viewId === 'chart-view' && !chartInitialized) {
       initChart();
       loadChartData();
@@ -301,7 +306,7 @@ categories: finance
     const endDate = document.getElementById('end-date').value;
     const tbody = document.getElementById('trades-table-body');
 
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">Fetching records...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #94a3b8;">Fetching records...</td></tr>`;
 
     const { data, error } = await supabaseClient
       .from('insider_trades')
@@ -311,18 +316,18 @@ categories: finance
 
     if (error) {
       console.error("Supabase Error:", error);
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">Failed to load data.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #ef4444;">Failed to load data.</td></tr>`;
       return;
     }
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No insider trades registered for this date range.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #94a3b8;">No insider trades registered for this date range.</td></tr>`;
       tableData = [];
       return;
     }
 
     tableData = data;
-    sortTable(sortColumn, false); // Keep direction on refresh
+    sortTable(sortColumn, false);
   }
 
   function sortTable(column, toggleDirection = true) {
@@ -331,7 +336,7 @@ categories: finance
         sortAscending = !sortAscending;
       } else {
         sortColumn = column;
-        sortAscending = false; // default desc for new column
+        sortAscending = false;
       }
     }
 
@@ -360,8 +365,10 @@ categories: finance
     const tbody = document.getElementById('trades-table-body');
     tbody.innerHTML = tableData.map(trade => `
       <tr>
+        <td>${trade.filingDate || '-'}</td>
         <td>${trade.transactionDate}</td>
         <td><span class="badge-ticker">${trade.issuerTicker}</span></td>
+        <td>${trade.issuerName || '-'}</td>
         <td>${trade.insiderName}</td>
         <td>${trade.insiderRole || '-'}</td>
         <td>$${Number(trade.price).toFixed(2)}</td>
@@ -396,20 +403,17 @@ categories: finance
     const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
     if (!ticker) return;
 
-    // Fetch Trades for Ticker
     const { data: trades } = await supabaseClient
       .from('insider_trades')
       .select('*')
       .eq('issuerTicker', ticker)
       .order('transactionDate', { ascending: true });
 
-    // Fetch Prices
     const priceCandles = await fetchHistoricalPrices(ticker);
     if (priceCandles.length > 0) {
       candlestickSeries.setData(priceCandles);
     }
 
-    // Set Markers
     if (trades && trades.length > 0) {
       const markers = trades.map(trade => ({
         time: trade.transactionDate,
