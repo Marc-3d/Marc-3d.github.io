@@ -1,6 +1,8 @@
 ---
 layout: post
 title: "Interactive Axis-Angle Quaternion Visualizer"
+date: 2026-08-22 22:15:00 +0200
+categories: programming
 ---
 
 <!-- UI Controls Panel -->
